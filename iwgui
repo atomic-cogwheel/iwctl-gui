@@ -1,0 +1,13 @@
+#! /bin/bash
+
+iwctl station list | tail -n +5 | grep " " | cut -d" " -f3 |  sed '/^$/d' | zenity --text-info --title "Network devices"
+if [[ $? -eq 0 ]]; then
+ dev=`zenity --entry --title "Choose" --text "Choose one of the previous devices"`
+ iwctl station $dev scan
+ iwctl station $dev get-networks | sed 's/\x1b\[[0-9;]*m//g;s/*//g;s/psk//;s/> //' | tail -n +5 | awk '{$1=$1};1' | sed '/^$/d' | zenity --text-info --title "Networks"
+ if [[ $? -eq 0 ]]; then
+  net=`zenity --entry --title "Choose" --text "Choose one of the previous networks"`
+  pass=`zenity --password --title "Password" --text "Enter password"`
+  iwctl -P $pass station $dev connect "$net"
+fi
+fi
